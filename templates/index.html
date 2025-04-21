@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Disease Prediction Section -->
+        <div class="form-section">
+            <h2>Select Your Symptoms</h2>
+            <form method="POST">
+                <label>Select symptoms (hold Ctrl or Cmd to select multiple):</label><br>
+                <select name="symptoms" multiple size="10">
+                    {% for symptom in symptoms %}
+                        <option value="{{ symptom }}">{{ symptom }}</option>
+                    {% endfor %}
+                </select><br><br>
+                <input type="submit" value="Predict Disease">
+            </form>
+        </div>
+
+        <!-- Results Section for Disease Prediction -->
+        <div class="results-section">
+            {% if predictions %}
+                <h3>Predicted Diseases:</h3>
+                <ul>
+                    {% for disease, prob in predictions %}
+                        <li>{{ disease }} - {{ prob }}%</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <!-- Chatbot Section -->
+        <div class="chatbot-section">
+            <h2>Chat with Medical Assistant</h2>
+            <div id="chatbox">
+                <div id="chatlogs"></div>
+                <input type="text" id="user_input" placeholder="Ask me anything..." />
+                <button id="send_btn">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('send_btn').addEventListener('click', function() {
+    var user_input = document.getElementById('user_input').value;
+    if(user_input.trim() !== '') {
+        // Display user message
+        document.getElementById('chatlogs').innerHTML += `<div><strong>You:</strong> ${user_input}</div>`;
+        
+        // Send the message to the server for chatbot response
+        fetch('/get', {
+            method: 'POST',
+            body: new URLSearchParams({ 'msg': user_input }),
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Display chatbot's response
+            document.getElementById('chatlogs').innerHTML += `<div>${data.response}</div>`;
+
+        })
+        .catch(error => {
+            document.getElementById('chatlogs').innerHTML += `<div><strong>Chatbot:</strong> Sorry, there was an error.</div>`;
+        });
+
+        // Clear input field
+        document.getElementById('user_input').value = '';
+    }
+});
+
+    </script>
+</body>
+</html>
